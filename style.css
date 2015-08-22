@@ -1,0 +1,186 @@
+* {
+    padding: 0;
+    margin: 0;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+html, body, .battle {
+    height: 100%;
+}
+
+body {
+    background-color: black;
+    color: white;
+}
+
+.message {
+    position: absolute;
+    width: 300px;
+    min-height: 150px;
+    background-color: black;
+    border-color: white;
+    border-radius: 10px;
+    border-style: ridge;
+    border-width: 5px;
+    padding: 20px;
+    text-align: center;
+    z-index: 1;
+    font-size: 15pt;
+    white-space: pre-wrap;
+}
+
+.fullScreenMessage {
+    position: absolute;
+    background-color: black;
+    border-color: white;
+    border-radius: 10px;
+    border-style: ridge;
+    border-width: 5px;
+    font-size: 50pt;
+    padding: 100px;
+    text-align: center;
+    z-index: 2;
+    white-space: pre-wrap;
+}
+
+.battle {
+}
+
+.tile {
+    background-color: white;
+}
+
+.tile .hpFrame, .tile .mpFrame {
+    height: 40px;
+    border-width: 5px;
+    border-style: ridge;
+}
+
+.tile .hpFrame {
+    border-color: red;
+    background-color: #540000;
+}
+
+.tile .mpFrame {
+    border-color: #0064ff;
+    background-color: #002054;
+}
+
+.tile .hp, .tile .mp {
+    height: 100%;
+    width: 100%;
+    -moz-transition: width 0.5s;
+    -webkit-transition: width 0.5s;
+    -o-transition: width 0.5s;
+    transition: width 0.5s;
+}
+
+.tile .hp {
+    background-color: red;
+}
+.tile .mp {
+    background-color: #0064ff;
+}
+
+.tile .name {
+    min-height: 1em;
+    padding: 10px 20px;
+    font-size: 30pt;
+}
+
+.player, .enemy{
+    width: 400px;
+    height: calc(100% - 10px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-color: white;
+    border-radius: 10px;
+    border-style: ridge;
+    border-width: 5px;
+}
+
+.player {
+    float: left;
+}
+
+.player .name {
+    background-color: darkblue;
+}
+.enemy {
+    float: right;
+}
+
+.selectable .tile:hover>div{
+    opacity: 0.3;
+}
+
+.enemy .hp, .enemy .mp {
+    float: right
+}
+
+.enemy .name {
+    background-color: darkgreen;
+    text-align: right;
+}
+
+.skill {
+    padding: 10px;
+    margin: 5px;
+    margin-bottom: 0;
+    font-size: 15pt;
+    background-color: floralwhite;
+    color: black;
+}
+
+.skill.selected, .skill:hover {
+    background-color: orange;
+}
+
+.skill.disabled, .skill.disabled:hover {
+   background-color: dimgray;
+}
+
+.skill div {
+    display: inline-block;
+    width: 150px;
+    white-space: pre;
+}
+
+.skill .skillName, .skill .skillDamage {
+    margin-bottom: 10px;
+}
+
+.skill .skillDamage, .skill .skillCosts{
+    width: 200px;
+}
+
+.usedSkill {
+    position: absolute;
+    background-color: rgba(0,0,0,0.8);
+    top: 100px;
+    width: 150px;
+    padding: 10px;
+    font-size: 25pt;
+    border-radius: 1000px;
+    opacity: 1;
+    -moz-transition: opacity 2s, top 2s;
+    -webkit-transition: opacity 2s, top 2s;
+    -o-transition: opacity 2s, top 2s;
+    transition: opacity 2s, top 2s;
+}
+
+.damage {
+    position: absolute;
+    background-color: rgba(0,0,0,0.8);
+    padding: 10px;
+    font-size: 25pt;
+    border-radius: 1000px;
+    opacity: 1;
+    -moz-transition: opacity 2s, top 2s;
+    -webkit-transition: opacity 2s, top 2s;
+    -o-transition: opacity 2s, top 2s;
+    transition: opacity 2s, top 2s;
+}

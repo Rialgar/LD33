@@ -1,0 +1,12 @@
+{
+  "env" :{
+    "browser": true
+  },
+  "globals": {
+    "define": false,
+    "requirejs": false
+  },
+  "rules": {
+    "no-console": 0
+  }
+}
