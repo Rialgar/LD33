@@ -63,10 +63,11 @@ define([], function(){
             damage: {
                 base: -2,
                 dice: [-3, -3]
-            }
+            },
+            costs: 3
         },
         mom_focus: {
-            name: "Heal",
+            name: "Focus",
             damage: {
                 base: -10,
                 dice: [],
@@ -179,7 +180,7 @@ define([], function(){
                 hardEnd: true
             },{
                 name: "Deer",
-                hp: 10,
+                hp: 12,
                 mp: 1,
                 skills: [skills.deer_charge, skills.deer_kick],
                 getAttackMessages: function(){return getMessages("deer_attack2")},
@@ -188,7 +189,7 @@ define([], function(){
                 getAttack: getAttack
             },{
                 name: "Deer",
-                hp: 10,
+                hp: 12,
                 mp: 1,
                 skills: [skills.deer_charge, skills.deer_kick],
                 getAttackMessages: function(){return []},
@@ -200,7 +201,7 @@ define([], function(){
                 name: "Memory of Mom",
                 hp: 5000,
                 mp: 0,
-                maxMp: 20,
+                maxMP: 20,
                 skills: [skills.mom_focus],
                 getAttackMessages: function(){return getMessages("mom_attack2")},
                 getDeathMessages: function(){return []},

@@ -117,7 +117,7 @@ define([], function(){
     };
 
     UI.prototype.select = function(tile){
-        if(this.selectedSkill && !tile.classList.contains("done")){
+        if(this.selectedSkill && !tile.classList.contains("done") && !this.selectedSkillTile.classList.contains("disabled")){
             var skill = this.selectedSkill;
             if(this.game.useSkill(this.player, tile.entity, skill)) {
                 this.disableSkills();

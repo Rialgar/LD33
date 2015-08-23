@@ -14,6 +14,7 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         this.messages = [];
         this.nextId = 0;
         this.nextEnemyTurnIndex = 0;
+        this.lastAttack = [];
         if(!this.ui) {
             this.ui = new UI(
                 window,
@@ -51,10 +52,14 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         if(!this.enemyMap[enemy.id]){
             this.enemyMap[enemy.id] = enemy;
             this.enemies.push(enemy);
-            enemy.maxHP = enemy.hp;
-            enemy.maxMP = enemy.mp;
+            if(!enemy.maxHP) {
+                enemy.maxHP = enemy.hp;
+            }
+            if(!enemy.maxMP) {
+                enemy.maxMP = enemy.mp;
+            }
         }
-        if(this.lastAttack.indexOf(enemy) === -1){
+        if(typeof enemy.anger !== "undefined" && this.lastAttack.indexOf(enemy) < 0){
             enemy.anger += death ? 2 : 1;
         }
     };
@@ -101,6 +106,7 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
             from.isEscaping = true;
             from.turnsTillEscape = 3;
             this.ui.update();
+            this.ui.showSkill(from, from, "Escape");
             this.nextTurn();
             return true;
         }
@@ -119,8 +125,12 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
                 var rand = Math.random()*dice;
                 dmg += (rand > 0) ? Math.ceil(rand) : Math.floor(rand);
             }
-            to.hp -= dmg;
-            this.ui.showDamage(to, dmg);
+            if(skill.damage.mp){
+                to.mp -= dmg;
+            }else {
+                to.hp -= dmg;
+            }
+            this.ui.showDamage(to, dmg, skill.damage.mp);
             if(skill.leech){
                 var leech = skill.leech * dmg;
                 from.hp += leech;
@@ -155,6 +165,7 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
 
     Game.prototype.makeEnemyTurn = function(enemy){
         if(enemy.isEscaping){
+            this.ui.showSkill(enemy, enemy, "Escape");
             if(enemy.turnsTillEscape > 0){
                 enemy.turnsTillEscape--;
                 this.ui.update();
