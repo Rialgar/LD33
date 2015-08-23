@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Merriweather);
+
 * {
     padding: 0;
     margin: 0;
@@ -14,6 +16,7 @@ html, body, .battle {
 body {
     background-color: black;
     color: white;
+    font-family: 'Merriweather', serif;
 }
 
 .message {
@@ -115,6 +118,26 @@ body {
 
 .selectable .tile:hover>div{
     opacity: 0.3;
+}
+
+.enemy .tile {
+    margin-bottom: 5px;
+}
+
+.enemy .tile.done {
+    background-color: black;
+}
+
+.enemy .tile.done>div {
+    opacity: 0.2;
+}
+
+.enemy .tile.done>div:hover {
+    opacity: 0.2;
+}
+
+.enemy .tile.escaping>div {
+    opacity: 0.9;
 }
 
 .enemy .hp, .enemy .mp {

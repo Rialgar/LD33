@@ -59,33 +59,9 @@ define([], function(){
         });
         this.playerTile = playerTile;
 
-
         this.enemyDiv = document.createElement("div");
         this.enemyDiv.classList.add("enemy");
         this.battleElement.appendChild(this.enemyDiv);
-
-        var enemyTile = document.createElement("div");
-        enemyTile.classList.add("tile");
-        this.enemyDiv.appendChild(enemyTile);
-        this.enemyName = document.createElement("div");
-        this.enemyName.classList.add("name");
-        enemyTile.appendChild(this.enemyName);
-        var enemyHPFrame = document.createElement("div");
-        enemyHPFrame.classList.add("hpFrame");
-        enemyTile.appendChild(enemyHPFrame);
-        this.enemyHP = document.createElement("div");
-        this.enemyHP.classList.add("hp");
-        enemyHPFrame.appendChild(this.enemyHP);
-        var enemyMPFrame = document.createElement("div");
-        enemyMPFrame.classList.add("mpFrame");
-        enemyTile.appendChild(enemyMPFrame);
-        this.enemyMP = document.createElement("div");
-        this.enemyMP.classList.add("mp");
-        enemyMPFrame.appendChild(this.enemyMP);
-        enemyTile.addEventListener("click", function(){
-            self.select(enemyTile);
-        });
-        this.enemyTile = enemyTile;
 
         this.parentElement = parentElement;
         rootElement.addEventListener("click", this.rootElementClicked.bind(this));
@@ -94,13 +70,15 @@ define([], function(){
     UI.prototype.makeSkillTile = function(skill){
         var tile = document.createElement("div");
         tile.classList.add("skill");
+        tile.classList.add("disabled");
         var name = document.createElement("div");
         name.classList.add("skillName");
         name.textContent = skill.name;
         tile.appendChild(name);
         var damage = document.createElement("div");
         damage.classList.add("skillDamage");
-        damage.textContent = "Damage: " + (skill.damageText || "0");
+        damage.textContent = (skill.damageText || "0");
+        tile.damageDiv = damage;
         tile.appendChild(damage);
         var targeted = document.createElement("div");
         targeted.classList.add("skillTargeted");
@@ -128,7 +106,9 @@ define([], function(){
                     self.selectedSkillTile = false;
                     self.playerDiv.classList.remove("selectable");
                     self.enemyDiv.classList.remove("selectable");
-                    self.game.useSkill(self.player, self.player,  skill);
+                    if(self.game.useSkill(self.player, self.player,  skill)){
+                        self.disableSkills();
+                    }
                 }
                 event.stopPropagation();
             }
@@ -137,7 +117,7 @@ define([], function(){
     };
 
     UI.prototype.select = function(tile){
-        if(this.selectedSkill){
+        if(this.selectedSkill && !tile.classList.contains("done")){
             var skill = this.selectedSkill;
             if(this.game.useSkill(this.player, tile.entity, skill)) {
                 this.disableSkills();
@@ -168,51 +148,57 @@ define([], function(){
         }
     };
 
-    UI.prototype.init = function(){
-        this.fullScreenMessageElement.textContent = "Click or touch to start.";
-        this.fullScreenMessageElement.style.display = "block";
-        this.fullScreenMessageElement.style.width = this.rootElement.clientWidth-210+"px";
-        this.fullScreenMessageElement.style.height = this.rootElement.clientHeight-210+"px";
-
-        this.fullScreenCallback = this.game.start.bind(this.game);
+    UI.prototype.makeEnemyTile = function(enemy){
+        var self = this;
+        var enemyTile = document.createElement("div");
+        enemyTile.classList.add("tile");
+        var  enemyName = document.createElement("div");
+        enemyName.classList.add("name");
+        enemyName.textContent = enemy.name;
+        enemyTile.enemyName = enemyName;
+        enemyTile.appendChild(enemyName);
+        var enemyHPFrame = document.createElement("div");
+        enemyHPFrame.classList.add("hpFrame");
+        enemyTile.appendChild(enemyHPFrame);
+        enemyTile.enemyHP = document.createElement("div");
+        enemyTile.enemyHP.classList.add("hp");
+        enemyHPFrame.appendChild(enemyTile.enemyHP);
+        var enemyMPFrame = document.createElement("div");
+        enemyMPFrame.classList.add("mpFrame");
+        enemyTile.appendChild(enemyMPFrame);
+        enemyTile.enemyMP = document.createElement("div");
+        enemyTile.enemyMP.classList.add("mp");
+        enemyMPFrame.appendChild(enemyTile.enemyMP);
+        enemyTile.addEventListener("click", function(event){
+            self.select(enemyTile);
+            event.preventDefault();
+            event.stopPropagation();
+        });
+        enemyTile.entity = enemy;
+        enemy.tile = enemyTile;
+        return enemyTile;
     };
 
-    UI.prototype.showMessage = function(message){
-        this.messageElement.textContent = message.text;
-        this.messageElement.style.display = "block";
-
-        switch(message.position){
-            case "left":
-                this.messageElement.style.left = "50px";
-                this.messageElement.style.top = "50px";
-                break;
-            case "right":
-                this.messageElement.style.left = (this.rootElement.clientWidth-400)+"px";
-                this.messageElement.style.top = "50px";
-                break;
-            case "center":
-                this.messageElement.style.left = (this.rootElement.clientWidth-350)/2+"px";
-                this.messageElement.style.top = "100px";
+    UI.prototype.removeEnemies = function(){
+        var tile = this.enemyDiv.firstElementChild;
+        while(tile){
+            this.enemyDiv.removeChild(tile);
+            tile = this.enemyDiv.firstElementChild;
         }
     };
 
-    UI.prototype.fight = function(player, enemy){
+    UI.prototype.fight = function(player, enemies){
         this.player = player;
         this.playerTile.entity = player;
-        this.enemy = enemy;
-        this.enemyTile.entity = enemy;
+        this.enemies = enemies.slice();
 
-        var tile = this.playerTile.nextElementSibling;
-        while(tile){
-            this.playerDiv.removeChild(tile);
-            tile = this.playerTile.nextElementSibling;
+        this.removeEnemies();
+        for (var i = 0; i < enemies.length; i++) {
+            var enemy = enemies[i];
+            enemy.dead = false;
+            enemy.escaped = false;
+            this.enemyDiv.appendChild(this.makeEnemyTile(enemy));
         }
-        for (var i = 0; i < this.player.skills.length; i++) {
-            var skill = this.player.skills[i];
-            this.playerDiv.appendChild(this.makeSkillTile(skill));
-        }
-
-        this.enemyName.textContent = enemy.name;
         this.update();
     };
 
@@ -248,8 +234,8 @@ define([], function(){
         } else {
             element.style.right = mana ? "200px" : "100px";
             top = mana
-                ? this.enemyMP.getBoundingClientRect().top
-                : this.enemyHP.getBoundingClientRect().top;
+                ? to.tile.enemyMP.getBoundingClientRect().top
+                : to.tile.enemyHP.getBoundingClientRect().top;
         }
         element.style.top = top+"px";
         if(damage >= 0){
@@ -268,27 +254,30 @@ define([], function(){
     };
 
     UI.prototype.update = function(){
-        this.playerHP.style.width = Math.max(0,(this.player.hp /this.player.maxHP)*100)+"%";
-        this.playerMP.style.width = Math.max(0,(this.player.mp /this.player.maxMP)*100)+"%";
-        this.enemyHP.style.width = Math.max(0,(this.enemy.hp /this.enemy.maxHP)*100)+"%";
-        this.enemyMP.style.width = Math.max(0,(this.enemy.mp /this.enemy.maxMP)*100)+"%";
-    };
-
-    UI.prototype.showTargetSelection = function(enemies){
-        for (var i = 0; i < enemies.length; i++) {
-            var enemy = enemies[i];
-            if(enemy.hp > 0){
-                this.game.selectTarget(enemy);
-                return;
+        this.playerHP.style.width = Math.max(0,(this.player.hp / this.player.maxHP)*100)+"%";
+        this.playerMP.style.width = Math.max(0,(this.player.mp / this.player.maxMP)*100)+"%";
+        var tile = this.playerDiv.firstElementChild;
+        for(var i = 0; i < this.player.skills.length; i++){
+            tile = tile && tile.nextElementSibling;
+            if(tile) {
+                tile.damageDiv.textContent = this.player.skills[i].damageText || "0";
+            } else {
+                this.playerDiv.appendChild(this.makeSkillTile(this.player.skills[i]));
             }
         }
-    };
-
-    UI.prototype.showFinalMessage = function(text){
-        this.fullScreenMessageElement.textContent = text;
-        this.fullScreenMessageElement.style.display = "block";
-
-        this.fullScreenCallback = this.game.init.bind(this.game);
+        for (i = 0; i < this.enemies.length; i++) {
+            var enemy = this.enemies[i];
+            enemy.tile.enemyHP.style.width = Math.max(0,(enemy.hp / enemy.maxHP)*100)+"%";
+            enemy.tile.enemyMP.style.width = Math.max(0,(enemy.mp / enemy.maxMP)*100)+"%";
+            if(enemy.dead || enemy.escaped){
+                enemy.tile.classList.remove("escaping");
+                enemy.tile.classList.add("done");
+                enemy.tile.enemyName.textContent = enemy.name + (enemy.dead ? " (dead)" : " (escaped)");
+            } else if (enemy.isEscaping) {
+                enemy.tile.classList.add("escaping");
+                enemy.tile.enemyName.textContent = enemy.name + " (escaping: " + enemy.turnsTillEscape+")";
+            }
+        }
     };
 
     UI.prototype.rootElementClicked = function(event){
@@ -303,6 +292,47 @@ define([], function(){
             event.preventDefault();
             event.stopPropagation();
         }
+    };
+
+    UI.prototype.showMessage = function(message){
+        this.messageElement.textContent = message.text;
+        this.messageElement.style.display = "block";
+
+        switch(message.position){
+            case "left":
+                this.messageElement.style.left = "50px";
+                this.messageElement.style.top = "50px";
+                break;
+            case "right":
+                this.messageElement.style.left = (this.rootElement.clientWidth-400)+"px";
+                this.messageElement.style.top = "50px";
+                break;
+            case "center":
+                this.messageElement.style.left = (this.rootElement.clientWidth-350)/2+"px";
+                this.messageElement.style.top = "100px";
+        }
+    };
+
+    UI.prototype.init = function(){
+        this.fullScreenMessageElement.textContent = "Click or touch to start.";
+        this.fullScreenMessageElement.style.display = "block";
+        this.fullScreenMessageElement.style.width = this.rootElement.clientWidth-210+"px";
+        this.fullScreenMessageElement.style.height = this.rootElement.clientHeight-210+"px";
+
+        this.fullScreenCallback = this.game.start.bind(this.game);
+
+        var tile = this.playerDiv.firstElementChild.nextElementSibling;
+        while(tile){
+            this.playerDiv.removeChild(tile);
+            tile = this.playerDiv.firstElementChild.nextElementSibling;
+        }
+    };
+
+    UI.prototype.showFinalMessage = function(text){
+        this.fullScreenMessageElement.textContent = text;
+        this.fullScreenMessageElement.style.display = "block";
+
+        this.fullScreenCallback = this.game.init.bind(this.game);
     };
 
     return UI;
