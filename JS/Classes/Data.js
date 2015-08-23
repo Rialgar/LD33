@@ -103,10 +103,10 @@ define([], function(){
             when: 3,
             messages: [
                 {position:"center", text: "Your hunt was very successful, you can even keep some meat for tomorrow."},
-                {position:"center", text: "You return home, proud of yourself, but very tired. Your breath still goes fast from the fight."}
+                {position:"center", text: "You return home, proud of yourself, but very tired. Your breath still goes fast from the fight."},
                 {position:"center", text: "As you close your eyes, you can hear the voice of your mother."}
             ]
-        },
+        }
     ];
 
     function getMessages(key){
