@@ -8,6 +8,7 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
     Game.prototype.init = function(){
         this.deathCount = 0;
         this.escapeCount = 0;
+        this.fightCount = 0;
         this.enemies = [];
         this.enemyMap = {};
         this.player = new Player();
@@ -35,16 +36,22 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
     };
 
     Game.prototype.end = function(){
-        this.ui.showFinalMessage("The End");
+        this.showMessages(Data.getEndMessages(this.player.hp <= 0, this.deathCount, this.escapeCount), function(){
+            this.ui.removeEnemies();
+            this.ui.showFinalMessage("The End\n\n\nClick/Touch to restart");
+        });
     };
 
     Game.prototype.showMessages = function(messages, callback){
         this.messages = messages;
         this.messageCallback = callback;
-        this.showNextMessage();
+        window.setTimeout(this.showNextMessage.bind(this),0);
     };
 
     Game.prototype.addEnemy = function(enemy, death){
+        if(enemy.dead){
+            return;
+        }
         if(!enemy.id){
             enemy.id = enemy.name + "_" + this.nextId;
             this.nextId++;
@@ -75,6 +82,9 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         var restEnemies = [];
         while (this.enemies.length > 0) {
             var enemy = this.enemies.shift();
+            if(enemy.dead){
+                continue;
+            }
             if (typeof enemy.anger === "undefined" || enemy.anger > 0) {
                 atEnemies.push(enemy);
             } else {
@@ -92,7 +102,14 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         this.lastAttack = enemies.slice();
         var messages = [];
         for (var i = 0; i < enemies.length; i++) {
-            messages = messages.concat(enemies[i].getAttackMessages());
+            var enemy = enemies[i];
+            messages = messages.concat(enemy.getAttackMessages());
+            if(enemy.courage){
+                enemy.morale = 120;
+            }
+            enemy.isEscaping = false;
+            enemy.turnsTillEscape = 3;
+            enemy.hp = enemy.maxHP;
         }
         this.ui.fight(this.player, enemies);
         this.showMessages(messages, function(){
@@ -136,14 +153,17 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
                 from.hp += leech;
                 this.ui.showDamage(from, leech);
             }
+            if(dmg > 0 && to.morale){
+                this.reduceMorale(to, 6);
+            }
         }
-        this.ui.update();
         if(to.hp > to.maxHP){
             to.hp = to.maxHP;
         }
-        if(from.mp > to.maxMP){
+        if(to.mp > to.maxMP){
             to.mp = to.maxMP;
         }
+        this.ui.update();
         if(to.hp <= 0) {
             this.kill(to);
         } else {
@@ -163,6 +183,15 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         }
     };
 
+    Game.prototype.reduceMorale = function(enemy, amount){
+        amount /= (1+enemy.courage/4);
+        enemy.morale -= amount;
+    };
+
+    var escapeSkill = {
+        name: "Escape",
+        escape: true
+    };
     Game.prototype.makeEnemyTurn = function(enemy){
         if(enemy.isEscaping){
             this.ui.showSkill(enemy, enemy, "Escape");
@@ -174,6 +203,14 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
                 this.letEscape(enemy);
             }
         } else {
+            if(enemy.courage){
+                if(Math.random() * 100 > enemy.morale){
+                    this.useSkill(enemy, enemy, escapeSkill);
+                    return;
+                } else {
+                    this.reduceMorale(enemy, 4);
+                }
+            }
             var attack = enemy.getAttack(this.player, this.currentEnemies);
             this.useSkill(enemy, attack.to, attack.skill)
         }
@@ -191,9 +228,7 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
     Game.prototype.kill = function(fighter){
         var self = this;
         if(fighter == this.player){
-            this.showMessages(Data.getMessages("player dead"), function () {
-                self.end();
-            });
+            self.end();
         } else {
             fighter.dead = true;
             this.deathCount++;
@@ -208,11 +243,11 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
                 if(self.player.learnByDeaths.length > 0 && self.deathCount >= self.player.learnByDeaths[0].when){
                     var skill = self.player.learnByDeaths.shift();
                     self.player.skills.push(skill);
-                    this.player.update(this.deathCount, this.escapeCount);
+                    this.player.update(this.deathCount, this.escapeCount, this.fightCount);
                     self.ui.update();
                     self.showMessages(skill.messages, self.continueFight.bind(self));
                 } else {
-                    this.player.update(this.deathCount, this.escapeCount);
+                    this.player.update(this.deathCount, this.escapeCount, this.fightCount);
                     self.continueFight()
                 }
             });
@@ -238,30 +273,28 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
             if(self.player.learnByEscapes.length > 0 && self.escapeCount >= self.player.learnByEscapes[0].when){
                 var skill = self.player.learnByEscapes.shift();
                 self.player.skills.push(skill);
-                this.player.update(this.deathCount, this.escapeCount);
+                this.player.update(this.deathCount, this.escapeCount, this.fightCount);
                 self.showMessages(skill.messages, self.continueFight.bind(self));
             } else {
-                this.player.update(this.deathCount, this.escapeCount);
+                this.player.update(this.deathCount, this.escapeCount, this.fightCount);
                 self.continueFight()
             }
         });
     };
 
     Game.prototype.endFight = function(){
+        this.fightCount++;
+        this.player.update(this.deathCount, this.escapeCount, this.fightCount);
         var self = this;
         self.ui.removeEnemies();
         if(this.enemies.length === 0){
-            this.showMessages(Data.getMessages("all dead"), function(){
-                self.end();
-            });
+            self.end();
         }else{
             var eventMessages = Data.getEventMessages(this.deathCount, this.escapeCount);
             this.showMessages(eventMessages, function(){
                 var enemies = this.getAttackingEnemies();
                 if(enemies.length === 0){
-                    self.showMessages(Data.getMessages("peace"), function(){
-                        self.end();
-                    });
+                    self.end();
                 } else {
                     self.attack(enemies);
                 }
@@ -275,6 +308,46 @@ define(["Data", "Player", "UI"], function(Data, Player, UI){
         this.showMessages(Data.getMessages("opening"), function(){
             self.endFight();
         });
+    };
+
+    Game.prototype._learn = function(){
+        while(this.player.learnByEscapes[0] && this.player.learnByEscapes[0].when <= this.escapeCount){
+            this.player.skills.push(this.player.learnByEscapes.shift());
+        }
+        while(this.player.learnByDeaths[0] && this.player.learnByDeaths[0].when <= this.deathCount){
+            this.player.skills.push(this.player.learnByDeaths.shift());
+        }
+    };
+    Game.prototype._skipIntro = function(){
+        while(this.currentEnemies[0] && !this.currentEnemies[0].courage){
+            var enemy = this.currentEnemies.shift();
+            if(enemy.hp > 100){
+                this.escapeCount++;
+                this.addEnemies(Data.getEnemiesRelatedTo(enemy), false);
+            }else{
+                this.deathCount++;
+                this.addEnemies(Data.getEnemiesRelatedTo(enemy), true);
+            }
+            this._learn();
+        }
+        this.fightCount++;
+        while(this.enemies[0] && !this.enemies[0].courage){
+            enemy = this.enemies.shift();
+            if(enemy.hp > 100){
+                this.escapeCount++;
+                this.addEnemies(Data.getEnemiesRelatedTo(enemy), false);
+            }else{
+                this.deathCount++;
+                this.addEnemies(Data.getEnemiesRelatedTo(enemy), true);
+            }
+            this._learn();
+            if(enemy.hardEnd){
+                this.fightCount++;
+            }
+        }
+        Data.getEventMessages(this.deathCount, this.escapeCount);
+        this.player.update(this.deathCount, this.escapeCount, this.fightCount);
+        this.continueFight();
     };
 
 	return Game;

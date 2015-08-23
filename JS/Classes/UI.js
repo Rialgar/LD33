@@ -82,7 +82,7 @@ define([], function(){
         tile.appendChild(damage);
         var targeted = document.createElement("div");
         targeted.classList.add("skillTargeted");
-        targeted.textContent = skill.target ? "Targeted" : "Self";
+        targeted.textContent = skill.target ? "Targeted" : (skill.all ? "All" : "Self");
         tile.appendChild(targeted);
         var costs = document.createElement("div");
         costs.classList.add("skillCosts");
@@ -154,7 +154,7 @@ define([], function(){
         enemyTile.classList.add("tile");
         var  enemyName = document.createElement("div");
         enemyName.classList.add("name");
-        enemyName.textContent = enemy.name;
+        enemyName.textContent = self.enemies.indexOf(enemy)+1 + ": " + enemy.name;
         enemyTile.enemyName = enemyName;
         enemyTile.appendChild(enemyName);
         var enemyHPFrame = document.createElement("div");
@@ -211,10 +211,22 @@ define([], function(){
         } else {
             element.style.right = "300px";
         }
+        var top = 100;
+        if(from.tile){
+            top = from.tile.getBoundingClientRect().top + 50;
+            if (top < 100){
+                from.tile.scrollIntoView(true);
+                top = 100;
+            } else if (top > this.rootElement.clientHeight - 100){
+                from.tile.scrollIntoView(false);
+                top = this.rootElement.clientHeight - 100;
+            }
+        }
+        element.style.top = top + "px";
         this.parentElement.appendChild(element);
         window.setTimeout(function(){
             element.style.opacity = 0;
-            element.style.top = "50px";
+            element.style.top = (top-50)+"px";
         },0);
         window.setTimeout(function(){
             element.parentElement.removeChild(element);
@@ -267,15 +279,24 @@ define([], function(){
         }
         for (i = 0; i < this.enemies.length; i++) {
             var enemy = this.enemies[i];
-            enemy.tile.enemyHP.style.width = Math.max(0,(enemy.hp / enemy.maxHP)*100)+"%";
-            enemy.tile.enemyMP.style.width = Math.max(0,(enemy.mp / enemy.maxMP)*100)+"%";
             if(enemy.dead || enemy.escaped){
-                enemy.tile.classList.remove("escaping");
-                enemy.tile.classList.add("done");
-                enemy.tile.enemyName.textContent = enemy.name + (enemy.dead ? " (dead)" : " (escaped)");
-            } else if (enemy.isEscaping) {
-                enemy.tile.classList.add("escaping");
-                enemy.tile.enemyName.textContent = enemy.name + " (escaping: " + enemy.turnsTillEscape+")";
+                if(enemy.tile.childElementCount > 1) {
+                    enemy.tile.classList.remove("escaping");
+                    enemy.tile.classList.add("done");
+                    enemy.tile.enemyName.textContent = this.enemies.indexOf(enemy) + 1 + ": " + enemy.name + (enemy.dead ? " (dead)" : " (esc)");
+                    var div = enemy.tile.firstElementChild.nextElementSibling;
+                    while (div) {
+                        enemy.tile.removeChild(div);
+                        div = enemy.tile.firstElementChild.nextElementSibling;
+                    }
+                }
+            } else {
+                enemy.tile.enemyHP.style.width = Math.max(0,(enemy.hp / enemy.maxHP)*100)+"%";
+                enemy.tile.enemyMP.style.width = Math.max(0,(enemy.mp / enemy.maxMP)*100)+"%";
+                if (enemy.isEscaping) {
+                    enemy.tile.classList.add("escaping");
+                    enemy.tile.enemyName.textContent = this.enemies.indexOf(enemy)+1 + ": " + enemy.name + " (escaping: " + enemy.turnsTillEscape+")";
+                }
             }
         }
     };
@@ -326,6 +347,9 @@ define([], function(){
             this.playerDiv.removeChild(tile);
             tile = this.playerDiv.firstElementChild.nextElementSibling;
         }
+
+        this.playerHP.style.width = "100%";
+        this.playerMP.style.width = "100%";
     };
 
     UI.prototype.showFinalMessage = function(text){

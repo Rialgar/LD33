@@ -37,6 +37,12 @@ define([], function(){
         ],
         mom_escape2: [
             {position:"center", text: "The dream fades, you wake up early and well rested."}
+        ],
+        cow_attack: [
+            {position:"center", text: "At the edge of the forrest, you find a herd of cows. You can fill the icy caverns below your home with these."}
+        ],
+        cow_death: [
+            {position:"center", text: "The cow collapses, looking very tasty."}
         ]
     };
     var skills = {
@@ -74,6 +80,34 @@ define([], function(){
                 mp: true
             },
             costs: -10
+        },
+        cow_kick: {
+            name: "Kick",
+            damage: {
+                base: 0,
+                dice: [2]
+            }
+        },
+        cow_charge: {
+            name: "Charge",
+            damage: {
+                base: 0,
+                dice: [3]
+            }
+        },
+        peasant_stab: {
+            name: "Stab",
+            damage: {
+                base: 1,
+                dice: [4]
+            }
+        },
+        peasant_bash: {
+            name: "Bash",
+            damage: {
+                base: 1,
+                dice: [2]
+            }
         }
     };
 
@@ -109,6 +143,100 @@ define([], function(){
             ]
         }
     ];
+
+    var peasantCount = 0;
+    function makePeasant(){
+        return {
+            name: "Peasant",
+            hp: 20,
+            mp: 1,
+            courage: 1,
+            anger: 0,
+            skills: [skills.peasant_stab, skills.peasant_bash],
+            getAttackMessages: function(){
+                var messages = [];
+                if(peasantCount == 0){
+                    messages = messages.concat(getMessages("peasant_first"));
+                }
+                messages.push(getRandomMessage("peasant_attack"));
+                peasantCount++;
+                return messages;
+            },
+            getDeathMessages: function(){return [getRandomMessage("peasant_death")]},
+            getEscapeMessages: function(){return [getRandomMessage("peasant_escape")]},
+            getAttack: getAttack,
+            relatives: []
+        }
+    }
+
+    function makeSoldier(){
+        return {
+
+        }
+    }
+
+    function makeApprentice(){
+        return {
+
+        }
+    }
+
+    function makeKnight(){
+        return {
+
+        }
+    }
+
+    function makeWizard(){
+        return {
+
+        }
+    }
+
+    function makeKing(){
+        return {
+
+        }
+    }
+
+    function makeQueen(){
+        return {
+
+        }
+    }
+
+    function makeRelation(e1, e2){
+        e1.relatives.push(e2);
+        e2.relatives.push(e1);
+    }
+
+    var p0 = makePeasant();
+    var p1 = makePeasant();
+    makeRelation(p0, p1);
+    var p2 = makePeasant();
+    makeRelation(p1, p2);
+    var p3 = makePeasant();
+    makeRelation(p1, p3);
+    makeRelation(p2, p3);
+    var p4 = makePeasant();
+    makeRelation(p2, p4);
+    var p5 = makePeasant();
+    makeRelation(p2, p5);
+    makeRelation(p4, p5);
+    var p6 = makePeasant();
+    makeRelation(p3, p6);
+    var p7 = makePeasant();
+    makeRelation(p3, p7);
+    makeRelation(p6, p7);
+    var p8 = makePeasant();
+    makeRelation(p4, p8);
+    makeRelation(p5, p8);
+    var p9 = makePeasant();
+    makeRelation(p6, p9);
+    makeRelation(p7, p9);
+    makeRelation(p8, p9);
+
+    var enemies = [p0,p1,p2,p3,p4,p5,p6,p7,p8,p9];
 
     function getMessages(key){
         var msg = messages[key];
@@ -151,7 +279,7 @@ define([], function(){
             return getMessages(key);
         },
         getEventMessages: getEventMessages,
-        getStartingEnemies: function(seed){
+        getStartingEnemies: function(){
             return [{
                 name: "Deer",
                 hp: 10,
@@ -214,10 +342,54 @@ define([], function(){
                     }
                 },
                 hardEnd: true
+            },{
+                name: "Cow",
+                hp: 15,
+                mp: 1,
+                skills: [skills.cow_charge, skills.cow_kick],
+                getAttackMessages: function(){return getMessages("cow_attack")},
+                getDeathMessages: function(){return getMessages("cow_death")},
+                getEscapeMessages: function(){},
+                getAttack: getAttack
+            },{
+                name: "Cow",
+                hp: 15,
+                mp: 1,
+                skills: [skills.cow_charge, skills.cow_kick],
+                getAttackMessages: function(){return []},
+                getDeathMessages: function(){return getMessages("cow_death")},
+                getEscapeMessages: function(){},
+                getAttack: getAttack
+            },{
+                name: "Cow",
+                hp: 15,
+                mp: 1,
+                skills: [skills.cow_charge, skills.cow_kick],
+                getAttackMessages: function(){return []},
+                getDeathMessages: function(){return getMessages("cow_death")},
+                getEscapeMessages: function(){},
+                getAttack: getAttack
             }]
         },
-        getEnemiesRelatedTo: function(enemy, seed){
-            return [];
+        getEnemiesRelatedTo: function(enemy){
+            if (enemy.name === "Cow"){
+                return [enemies[0]];
+            } else if (enemy.name === "King" || enemy.name === "Queen"){
+                return enemies.slice();
+            } else if(enemy.relatives){
+                return enemy.relatives.slice();
+            } else {
+                return [];
+            }
+        },
+        getEndMessages: function(playerDead, deathCount, escapeCount){
+            if(playerDead){
+                return getMessages("player_death");
+            } else if (deathCount > escapeCount){
+                return getMessages("all_dead");
+            } else {
+                return getMessages("peace");
+            }
         }
     }
 });
