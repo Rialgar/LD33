@@ -279,7 +279,7 @@ define([], function(){
         apprentice_heal: {
             name: "Heal",
             damage: {
-                base: -5,
+                base: -4,
                 dice: [-4,-4]
             },
             costs: 3
@@ -323,7 +323,7 @@ define([], function(){
         wizard_heal: {
             name: "Heal",
             damage: {
-                base: -10,
+                base: -8,
                 dice: [-8,-8]
             },
             costs: 3
@@ -368,7 +368,7 @@ define([], function(){
             name: "Heal All",
             all: true,
             damage: {
-                base: -15,
+                base: -10,
                 dice: [-10, -10]
             },
             costs: 6
