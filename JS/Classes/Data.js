@@ -55,7 +55,7 @@ define([], function(){
             {position:"right", text: "You stole our cows, beast!"},
             {position:"right", text: "Don't you dare steeling from our farms again!"},
             {position:"right", text: "DIE! So we can live in peace!"},
-            {position:"right", text: "I will sacrifice no virgin, nu huh!"}
+            {position:"right", text: "I won't sacrifice no virgin, nu huh!"}
         ],
         peasant_escape: [
             {position:"right", text: "Aaaaaahh!"},
@@ -803,7 +803,7 @@ define([], function(){
 
     var nextDeathEvent = 0;
     var nextEscapeEvent = 0;
-    function getEventMessages(deaths, escapes){
+    function getEventMessages(deaths, escapes, fights){
         var messages = [];
         while(nextDeathEvent < deathEvents.length && deaths >= deathEvents[nextDeathEvent].when){
             messages = messages.concat(deathEvents[nextDeathEvent].messages);
@@ -812,6 +812,11 @@ define([], function(){
         while(nextEscapeEvent < escapeEvents.length && escapes >= escapeEvents[nextEscapeEvent].when){
             messages = messages.concat(escapeEvents[nextEscapeEvent].messages);
             nextEscapeEvent++;
+        }
+        if(fights > 6){
+            messages.push({
+                position: "center", text: "You won the fight. You hope they don't come back tomorrow."
+            })
         }
         return messages;
     }

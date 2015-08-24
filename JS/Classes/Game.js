@@ -137,9 +137,9 @@ define(["Data", "Player", "UI"], function (Data, Player, UI) {
             }
             this.ui.showDamage(to, dmg, skill.damage.mp);
             if (skill.leech) {
-                var leech = skill.leech * dmg;
+                var leech = Math.ceil(skill.leech * dmg);
                 from.hp += leech;
-                this.ui.showDamage(from, leech);
+                this.ui.showDamage(from, -leech);
             }
             if (dmg > 0 && to.morale) {
                 this.reduceMorale(to, 10);
@@ -364,7 +364,7 @@ define(["Data", "Player", "UI"], function (Data, Player, UI) {
         if (this.enemies.length === 0) {
             self.end();
         } else {
-            var eventMessages = Data.getEventMessages(this.deathCount, this.escapeCount);
+            var eventMessages = Data.getEventMessages(this.deathCount, this.escapeCount, this.fightCount);
             this.showMessages(eventMessages, function () {
                 var enemies = this.getAttackingEnemies();
                 if (enemies.length === 0) {
