@@ -7,7 +7,7 @@ define([], function(){
         this._mp = 20;
 
         this.skills= [
-            {
+            /*{
                 name: "Instakill",
                 damage: {
                     _base: 10000,
@@ -27,7 +27,7 @@ define([], function(){
                     _dice: []
                 },
                 costs: -10000
-            },
+            },*/
             {
                 name: "Wait"
             },
