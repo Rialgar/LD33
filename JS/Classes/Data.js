@@ -178,7 +178,7 @@ define([], function(){
         queen_death: [
             {position: "right", text: "I will diminish."}
         ],
-        player_dead: [
+        player_death: [
             {position: "center", text: "You died. The townsfolk feast on your flesh, furnish armor from your hide and weapons from your bones."}
         ],
         peace: [
@@ -368,8 +368,8 @@ define([], function(){
             name: "Heal All",
             all: true,
             damage: {
-                base: -10,
-                dice: [-10, -10]
+                base: -8,
+                dice: [-8, -8]
             },
             costs: 6
         },
@@ -589,7 +589,7 @@ define([], function(){
         return {
             name: "Queen",
             hp: 60,
-            mp: 60,
+            mp: 50,
             courage: 10,
             anger: 0,
             skills: [skills.queen_heal, skills.queen_blast, skills.queen_focus],
